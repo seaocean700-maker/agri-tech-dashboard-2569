@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Agri-Tech Dashboard & Portfolio</title>
+    <!-- Prevent favicon 404 console error -->
+    <link rel="icon" href="data:,">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet.js (Map Library) CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Section 1: Header & Control Bar -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="sprout"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AgriSmart</h1>
+                    <p>ระบบติดตามผลงานและโครงการเทคโนโลยีเกษตรอัจฉริยะ</p>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text">ระบบกำลังทำงาน (Live)</span>
+                </div>
+                <button id="theme-toggle" class="icon-btn" title="เปลี่ยนธีม มืด/สว่าง">
+                    <i data-lucide="sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-section glass-panel">
+            <div class="filter-group-title">
+                <i data-lucide="sliders-horizontal"></i>
+                <span>ตัวกรองอัจฉริยะ (Smart Filters)</span>
+            </div>
+            
+            <div class="filters-grid">
+                <!-- Search Keyword -->
+                <div class="filter-item">
+                    <label for="search-input">ค้นหาโครงการ</label>
+                    <div class="input-with-icon">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="search-input" placeholder="พิมพ์ชื่อโครงการ, พืช, จังหวัด..." autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Select Province -->
+                <div class="filter-item">
+                    <label for="filter-province">จังหวัด</label>
+                    <select id="filter-province">
+                        <option value="">ทั้งหมดทุกจังหวัด</option>
+                        <!-- Dynamic options will be rendered here -->
+                    </select>
+                </div>
+
+                <!-- Select Crop -->
+                <div class="filter-item">
+                    <label for="filter-crop">ชนิดพืช / สินค้า</label>
+                    <select id="filter-crop">
+                        <option value="">ทั้งหมดทุกชนิดพืช</option>
+                        <!-- Dynamic options will be rendered here -->
+                    </select>
+                </div>
+
+                <!-- Select Technology -->
+                <div class="filter-item">
+                    <label for="filter-tech">เทคโนโลยี</label>
+                    <select id="filter-tech">
+                        <option value="">ทั้งหมดทุกเทคโนโลยี</option>
+                        <!-- Dynamic options will be rendered here -->
+                    </select>
+                </div>
+
+                <!-- Reset Button -->
+                <div class="filter-item-btn">
+                    <button id="btn-reset-filters" class="btn btn-secondary">
+                        <i data-lucide="refresh-cw"></i> ล้างตัวกรอง
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI Metrics Grid -->
+        <section class="kpi-section">
+            <div class="kpi-card glass-panel" id="kpi-projects">
+                <div class="kpi-icon color-primary"><i data-lucide="folder-git-2"></i></div>
+                <div class="kpi-data">
+                    <h3 class="kpi-value" id="val-total-projects">0</h3>
+                    <p class="kpi-label">จำนวนโครงการที่สนับสนุน</p>
+                </div>
+            </div>
+            <div class="kpi-card glass-panel" id="kpi-area">
+                <div class="kpi-icon color-secondary"><i data-lucide="map"></i></div>
+                <div class="kpi-data">
+                    <h3 class="kpi-value" id="val-total-area">0</h3>
+                    <p class="kpi-label">พื้นที่พัฒนา (ไร่)</p>
+                </div>
+            </div>
+            <div class="kpi-card glass-panel" id="kpi-farmers">
+                <div class="kpi-icon color-accent"><i data-lucide="users"></i></div>
+                <div class="kpi-data">
+                    <h3 class="kpi-value" id="val-total-farmers">0</h3>
+                    <p class="kpi-label">เกษตรกรได้รับประโยชน์ (ราย)</p>
+                </div>
+            </div>
+            <div class="kpi-card glass-panel" id="kpi-efficiency">
+                <div class="kpi-icon color-info"><i data-lucide="trending-up"></i></div>
+                <div class="kpi-data">
+                    <h3 class="kpi-value" id="val-average-yield">+0%</h3>
+                    <p class="kpi-label">ผลผลิตเฉลี่ยที่เพิ่มขึ้น</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <div class="tab-navigation glass-panel">
+            <button class="tab-btn active" data-view="dashboard-view">
+                <i data-lucide="layout-dashboard"></i>
+                <span>แดชบอร์ด & แผนที่</span>
+            </button>
+            <button class="tab-btn" data-view="workspace-view">
+                <i data-lucide="layout"></i>
+                <span>พื้นที่ทำงานโครงการ (Workspace)</span>
+            </button>
+        </div>
+
+        <!-- Tab Content 1: Dashboard & Map -->
+        <div id="dashboard-view" class="tab-content active-tab">
+            <!-- Main Dashboard Split Layout -->
+            <div class="dashboard-grid">
+                <!-- Left Side: Interactive Map -->
+                <div class="map-container glass-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i data-lucide="map-pin"></i>
+                            <h2>แผนที่แปลงเกษตรอัจฉริยะ (Dynamic GPS Mapping)</h2>
+                        </div>
+                        <div class="panel-actions">
+                            <span class="badge">คลิกหมุดเพื่อกรองเจาะลึก</span>
+                        </div>
+                    </div>
+                    <div id="map"></div>
+                </div>
+
+                <!-- Right Side: Infographic Details Panel -->
+                <div class="infographic-container glass-panel" id="infographic-section">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i data-lucide="file-bar-chart-2"></i>
+                            <h2>สรุปสารสนเทศโครงการ (Project Infographic)</h2>
+                        </div>
+                        <span id="info-selected-province" class="province-tag">ทุกพื้นที่ภาพรวม</span>
+                    </div>
+                    
+                    <!-- Infographic Content Wrapper -->
+                    <div class="infographic-body" id="infographic-capture-area">
+                        <div class="infographic-header">
+                            <div class="info-logo">AgriSmart Infographic</div>
+                            <h3 id="info-project-name">ภาพรวมความสำเร็จของทุกโครงการ</h3>
+                            <p id="info-project-sub">ระบบเทคโนโลยีเกษตรกรรมแม่นยำสูงระดับประเทศ</p>
+                        </div>
+
+                        <!-- Flow Diagram Grid (Context -> Painpoint -> Technology -> Impact) -->
+                        <div class="infographic-flow">
+                            <!-- Context -->
+                            <div class="flow-card context-card">
+                                <div class="flow-badge"><i data-lucide="globe"></i> บริบทโครงการ (Context)</div>
+                                <div class="flow-content" id="info-context">
+                                    รวบรวมและวิเคราะห์ข้อมูลเพื่อขับเคลื่อนเกษตรกรรมด้วยการจัดการเทคโนโลยีที่ชาญฉลาดและเหมาะสมกับสภาพภูมิประเทศ เพื่อสร้างความยั่งยืนแก่เกษตรกรไทย
+                                </div>
+                            </div>
+
+                            <!-- Painpoint -->
+                            <div class="flow-card painpoint-card">
+                                <div class="flow-badge"><i data-lucide="alert-triangle"></i> ปัญหาหลัก (Painpoint)</div>
+                                <div class="flow-content" id="info-painpoint">
+                                    ภัยธรรมชาติ ความแปรปรวนของสภาพอากาศ การขาดข้อมูลเชิงลึกในแปลงเพาะปลูก และต้นทุนพลังงานและทรัพยากรการผลิตที่สูงเกินความจำเป็น
+                                </div>
+                            </div>
+
+                            <!-- Technology -->
+                            <div class="flow-card technology-card">
+                                <div class="flow-badge"><i data-lucide="cpu"></i> เทคโนโลยีประยุกต์ (Technology)</div>
+                                <div class="flow-content" id="info-tech-detail">
+                                    บูรณาการอุปกรณ์เซนเซอร์ IoT, ระบบชลประทานอัจฉริยะ (Smart Irrigation), การวิเคราะห์และพยากรณ์ปริมาณน้ำและอากาศด้วย AI, รวมถึงการใช้โดรนและภาพถ่ายดาวเทียม
+                                </div>
+                            </div>
+
+                            <!-- Impact -->
+                            <div class="flow-card impact-card">
+                                <div class="flow-badge"><i data-lucide="sparkles"></i> ผลลัพธ์ที่จับต้องได้ (Impact)</div>
+                                <div class="flow-content" id="info-impact">
+                                    เพิ่มปริมาณและคุณภาพผลผลิต ลดการสูญเสียทรัพยากร ลดการปล่อยก๊าซเรือนกระจก และยกระดับคุณภาพชีวิตของเกษตรกรอย่างยั่งยืน
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Download Actions -->
+                    <div class="infographic-actions">
+                        <button id="btn-download-report" class="btn btn-primary">
+                            <i data-lucide="file-text"></i> ดาวน์โหลดรายงานฉบับเต็ม
+                        </button>
+                        <button id="btn-download-image" class="btn btn-accent">
+                            <i data-lucide="image"></i> ดาวน์โหลดภาพ Infographic
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Portfolio Cards Grid Section -->
+            <section class="portfolio-section">
+                <div class="section-title-area">
+                    <div class="panel-title">
+                        <i data-lucide="layout-grid"></i>
+                        <h2>ผลงานโครงการรายพื้นที่ (Portfolio Grid)</h2>
+                    </div>
+                    <p class="section-subtitle">คลิกที่การ์ดเพื่อเจาะลึกและเลื่อนตำแหน่งแผนที่ไปยังพื้นที่แปลงโครงการ</p>
+                </div>
+                
+                <!-- Cards Container -->
+                <div class="portfolio-grid" id="portfolio-grid-container">
+                    <!-- Portfolio cards will be rendered dynamically -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Tab Content 2: Unified Project Workspace -->
+        <div id="workspace-view" class="tab-content">
+            <!-- Workspace Top: Project Progress by Area -->
+            <section class="progress-section glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i data-lucide="trending-up"></i>
+                        <h2>ความก้าวหน้าโครงการรายพื้นที่ (Project Progress by Area)</h2>
+                    </div>
+                </div>
+                <div class="progress-grid" id="progress-grid-container">
+                    <!-- Progress cards will be rendered dynamically -->
+                </div>
+            </section>
+
+            <!-- Workspace Middle: Split Calendar & Today's Tasks -->
+            <div class="workspace-middle-grid">
+                <!-- Left Column: Calendar -->
+                <section class="calendar-section glass-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i data-lucide="calendar"></i>
+                            <h2>ปฏิทินแผนงานพื้นที่รายเดือน (Smart Activity Calendar)</h2>
+                        </div>
+                        <div class="calendar-controls">
+                            <button id="btn-prev-month" class="icon-btn" title="เดือนก่อนหน้า">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <h3 id="calendar-month-year" class="calendar-month-year-title">มิถุนายน 2026</h3>
+                            <button id="btn-next-month" class="icon-btn" title="เดือนถัดไป">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="panel-actions">
+                            <span class="badge" id="calendar-filter-indicator">แสดงโครงการทั้งหมด</span>
+                        </div>
+                    </div>
+                    
+                    <div class="calendar-wrapper">
+                        <div class="calendar-grid-header">
+                            <div class="day-name sunday">อา.</div>
+                            <div class="day-name">จ.</div>
+                            <div class="day-name">อ.</div>
+                            <div class="day-name">พ.</div>
+                            <div class="day-name">พฤ.</div>
+                            <div class="day-name">ศ.</div>
+                            <div class="day-name saturday">ส.</div>
+                        </div>
+                        <div class="calendar-grid-body" id="calendar-grid-days">
+                            <!-- Days will be rendered dynamically here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Right Column: Today's Selected Tasks -->
+                <section class="daily-tasks-section glass-panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <i data-lucide="clipboard-list"></i>
+                            <h2>งานประจำวันที่เลือก (Selected Day's Tasks)</h2>
+                        </div>
+                    </div>
+                    <div class="daily-tasks-wrapper">
+                        <div class="selected-date-header" id="selected-date-title">19 มิถุนายน 2026</div>
+                        <div class="daily-tasks-list" id="daily-tasks-container">
+                            <!-- Daily tasks will be rendered dynamically -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Workspace Bottom: Kanban Board -->
+            <section class="kanban-section glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i data-lucide="kanban-square"></i>
+                        <h2>สถานะดำเนินงานทีมงาน (Project Team Kanban Board)</h2>
+                    </div>
+                    <div class="panel-actions">
+                        <span class="badge" id="kanban-filter-indicator">แสดงโครงการทั้งหมด</span>
+                    </div>
+                </div>
+                
+                <div class="kanban-board">
+                    <!-- Column 1: Planning -->
+                    <div class="kanban-column" data-status="planning">
+                        <div class="column-header">
+                            <span class="column-dot color-planning"></span>
+                            <h3>วางแผน / วิจัย (Planning)</h3>
+                            <span class="task-count" id="count-planning">0</span>
+                        </div>
+                        <div class="kanban-tasks" id="tasks-planning" ondragover="allowDrop(event)" ondrop="drop(event)">
+                            <!-- Tasks go here -->
+                        </div>
+                    </div>
+
+                    <!-- Column 2: In Progress -->
+                    <div class="kanban-column" data-status="in-progress">
+                        <div class="column-header">
+                            <span class="column-dot color-inprogress"></span>
+                            <h3>กำลังดำเนินการ (In Progress)</h3>
+                            <span class="task-count" id="count-in-progress">0</span>
+                        </div>
+                        <div class="kanban-tasks" id="tasks-in-progress" ondragover="allowDrop(event)" ondrop="drop(event)">
+                            <!-- Tasks go here -->
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Done -->
+                    <div class="kanban-column" data-status="done">
+                        <div class="column-header">
+                            <span class="column-dot color-done"></span>
+                            <h3>เสร็จสิ้น (Done)</h3>
+                            <span class="task-count" id="count-done">0</span>
+                        </div>
+                        <div class="kanban-tasks" id="tasks-done" ondragover="allowDrop(event)" ondrop="drop(event)">
+                            <!-- Tasks go here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>© 2026 AgriSmart Dashboard. พัฒนาขึ้นโดยทีมวิจัยเทคโนโลยีและนวัตกรรมเกษตรกรรมอัจฉริยะ.</p>
+        </footer>
+    </div>
+
+    <!-- Scripts Integration -->
+    <!-- Leaflet.js Mapping Library JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- html2canvas Library (For exporting element to PNG image) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Custom Application Logic -->
+    <!-- สคริปต์ข้อมูลและระบบการทำงาน -->
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+<script>
+    // กำหนดวันและเวลาสิ้นสุดการเข้าตรวจงาน (ตัวอย่าง: สิ้นสุดวันที่ 24 กันยายน 2026 เวลา 23:59 น.)
+    const expireDate = new Date("2026-09-24T23:59:59+07:00");
+    const currentDate = new Date();
+
+    if (currentDate > expireDate) {
+        // เมื่อเลยกำหนดเวลา จะปิดการแสดงผลทั้งหน้าและขึ้นข้อความแจ้งเตือน
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; font-family:Prompt, sans-serif; background:#0a0e17; color:#f3f4f6; text-align:center; padding:20px;">
+                <h1 style="font-size:1.8rem; margin-bottom:12px; color:#ef4444;">🔒 หมดเวลาการเปิดตรวจงานชั่วคราว</h1>
+                <p style="font-size:1rem; color:#9ca3af; max-width:480px;">
+                    ลิงก์สำหรับตรวจรับโครงการนี้หมดอายุการเข้าชมแล้ว หากต้องการเข้าดูผลงานหรือทดสอบระบบเพิ่มเติม กรุณาติดต่อผู้รับผิดชอบโครงการ
+                </p>
+            </div>
+        `;
+    }
+</script>
+</body>
+</html>
